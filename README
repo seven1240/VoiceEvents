@@ -14,6 +14,7 @@ app_config.yml
 
 app: rails_app
 domain: domain1
+erlang_web_server: http://your_voice_events_server:port
 
 We register callbacks from rails (say environment.rb):
 
