@@ -1,0 +1,53 @@
+This is an updated version of http://code.google.com/p/ruby-telegraph/
+
+Note, it's somewhat tied into our system specific logic and we don't have the bandwidth to separate/test/document this. However, if someone interested feel free to fork one and release, it's MIT licensed.
+
+Here is a brief description of the idea.
+
+VoiceEvents:
+
+It's a combine of Erlang + Ruby(Rails) Gem. When a rails application starts, which(called an endpoint) registers(subscribers) to Erlang(voice_events) which is in front of FreeSWITCH to register events it cares about, and then voice_events forwards the register request to FreeSWITCH and saved the register requests to a local DETS to survive a restart. Every time  voice_events got an event from FreeSWITCH, it send back to Rails.
+
+To support multi-domain and application, it needs a few params we stored in a yaml file and loads to APP_CONFIG.
+
+app_config.yml
+
+app: rails_app
+domain: domain1
+
+We register callbacks from rails (say environment.rb):
+
+ Telegraph::Events.add_handler :background_job, :url=>{:controller=>:calls, :action=>:background_job}
+ Telegraph::Events.add_handler :channel_bridge, :url=>{:controller=>:calls, :action=>:bridge}
+ Telegraph::Events.add_handler :channel_answer, :url=>{:controller=>:calls, :action=>:answer}
+ Telegraph::Events.add_handler :channel_hangup, :url=>{:controller=>:calls, :action=>:hangup}
+ Telegraph::Events.add_handler :channel_hangup_complete, :url=>{:controller=>:calls, :action=>:hangup_complete}
+ Telegraph::Events.add_handler :channel_bridge, :url=>{:controller=>'voip/incoming_calls', :action=>:bridge}
+ Telegraph::Events.add_handler :channel_answer, :url=>{:controller=>'voip/incoming_calls', :action=>:answer}
+ Telegraph::Events.add_handler :channel_hangup_complete, :url=>{:controller=>'voip/incoming_calls', :action=>:hangup_complete}
+ Telegraph::Events.add_handler :dtmf, :url=>{:controller=>'voip/incoming_calls', :action=>:dtmf}
+ Telegraph::Events.add_handler "custom_luagw::report", :url=>{:controller=>'dummy', :action=>:dtmf}
+
+And then Erlang can callback the right controller based on the domain and app_name whenever it get an event from FreeSWITCH.
+
+The endpoints can be added and deleted by a rest interface encoded in json(Like the Telegraph::Events.add_handler does).
+
+We do not have VoiceView anymore since we think it's easier to write lua the handle the calling flow and more complicated calling flow directly handles by Erlang apps(other erlang apps than the above one which is only an events hub/routing application). And another reason we don't use VoiceView is that you can easily fire a custom event from FreeSWITCH(lua or any other) and then voice_events will deliver to the right rails-app and all call flow is completely event driven.
+
+We use ActiveResource heavily to integrate with our system, Like VoipDialstringService which is a replacement of VoipDestinationService(deprecated) to get a freeswitch dialstring from the smart routing system which can route PSTN/Skype/Gtalk ....
+
+For the Erlang part:
+cd erlang/deps/mochiweb-src
+make
+cd ../..
+make
+./start-dev.sh
+
+
+The code is a little mess and we are sorry for some hard-coded constants but it's very stable and performs very well on our production system.
+
+
+Contacts:
+jpalley .at. idapted.com
+seven .at. idapted.com
+http://www.idapted.com

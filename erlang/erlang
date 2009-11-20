@@ -1,0 +1,34 @@
+#!/bin/sh
+ 
+##
+## usage erlang {start|stop}
+## this script should go into /etc/init.d/
+
+DIR=/home/app/telegraph
+ERL=/usr/bin/erl
+# HOSTNAME=`hostname`
+HOSTNAME=localhost
+export HEART_COMMAND="$PA/web_server.sh start"
+HEART=-heart
+
+cd $DIR
+
+case $1 in
+
+  start)
+    # exec $ERL -pa $PWD/ebin $PWD/deps/*/ebin -boot start_sasl -sname voiceEvents@localhost -setcookie ClueCon -s voiceEvents -config error_logger -detatch $HEART
+		su app -c ./start.sh
+    echo  "Starting erlang server"
+    ;;
+ 
+  stop)
+    echo "cannot stop erlang server!"
+		# $ERL -sname voiceEventsCli@localhost -remsh voiceEvents@localhost -setcookie ClueCon
+    ;;
+ 
+  *)
+    echo "Usage: $0 {start|stop}"
+    exit 1
+esac
+ 
+exit 0

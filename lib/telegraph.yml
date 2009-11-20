@@ -1,0 +1,13 @@
+development:
+    server: voip1.lan
+    model:
+        port: 8080
+        username: freeswitch
+        password: works
+        
+production:
+    server: voip1.lan
+    model:
+        port: 8080
+        username: freeswitch
+        password: works
